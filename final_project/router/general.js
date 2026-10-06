@@ -7,7 +7,69 @@ const public_users = express.Router();
 
 const BASE_URL = "http://localhost:5000";
 
-// ---------- Registro ----------
+// ============================================================
+// TASK 10: Get the list of all books available in the shop
+// Uses Axios with async/await
+// ============================================================
+public_users.get("/", async (req, res) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/api/books`);
+    return res.status(200).send(JSON.stringify(response.data, null, 4));
+  } catch (error) {
+    return res.status(500).json({ message: "Error al obtener los libros" });
+  }
+});
+
+// ============================================================
+// TASK 11: Get book details based on ISBN
+// Uses Axios with async/await
+// ============================================================
+public_users.get("/isbn/:isbn", async (req, res) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/api/isbn/${req.params.isbn}`);
+    return res.status(200).send(JSON.stringify(response.data, null, 4));
+  } catch (error) {
+    const status = error.response ? error.response.status : 500;
+    return res.status(status).json({ message: "No se pudo obtener el libro por ISBN" });
+  }
+});
+
+// ============================================================
+// TASK 12: Get book details based on author
+// Uses Axios with async/await
+// ============================================================
+public_users.get("/author/:author", async (req, res) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/api/author/${encodeURIComponent(req.params.author)}`);
+    return res.status(200).send(JSON.stringify(response.data, null, 4));
+  } catch (error) {
+    const status = error.response ? error.response.status : 500;
+    return res.status(status).json({ message: "No se pudo obtener los libros por autor" });
+  }
+});
+
+// ============================================================
+// TASK 13: Get book details based on title
+// Uses Axios with async/await
+// ============================================================
+public_users.get("/title/:title", async (req, res) => {
+  try {
+    const response = await axios.get(`${BASE_URL}/api/title/${encodeURIComponent(req.params.title)}`);
+    return res.status(200).send(JSON.stringify(response.data, null, 4));
+  } catch (error) {
+    const status = error.response ? error.response.status : 500;
+    return res.status(status).json({ message: "No se pudo obtener los libros por título" });
+  }
+});
+
+// ---------- Book reviews ----------
+public_users.get("/review/:isbn", (req, res) => {
+  const book = books[req.params.isbn];
+  if (!book) return res.status(404).json({ message: "Libro no encontrado" });
+  return res.status(200).json(book.reviews);
+});
+
+// ---------- Register ----------
 public_users.post("/register", (req, res) => {
   const { username, password } = req.body;
 
@@ -22,7 +84,7 @@ public_users.post("/register", (req, res) => {
   return res.status(200).json({ message: "Usuario registrado correctamente. Ya puedes iniciar sesión" });
 });
 
-// ---------- Rutas internas de datos (las consume Axios) ----------
+// ---------- Internal data routes (consumed by Axios above) ----------
 public_users.get("/api/books", (req, res) => {
   res.json(books);
 });
@@ -49,53 +111,6 @@ public_users.get("/api/title/:title", (req, res) => {
     .map(([isbn, book]) => ({ isbn, ...book }));
   if (result.length === 0) return res.status(404).json({ message: "No hay libros con ese título" });
   res.json(result);
-});
-
-// ---------- Rutas públicas con Axios + async/await ----------
-public_users.get("/", async (req, res) => {
-  try {
-    const response = await axios.get(`${BASE_URL}/api/books`);
-    return res.status(200).send(JSON.stringify(response.data, null, 4));
-  } catch (error) {
-    return res.status(500).json({ message: "Error al obtener los libros" });
-  }
-});
-
-public_users.get("/isbn/:isbn", async (req, res) => {
-  try {
-    const response = await axios.get(`${BASE_URL}/api/isbn/${req.params.isbn}`);
-    return res.status(200).send(JSON.stringify(response.data, null, 4));
-  } catch (error) {
-    const status = error.response ? error.response.status : 500;
-    return res.status(status).json({ message: "No se pudo obtener el libro por ISBN" });
-  }
-});
-
-public_users.get("/author/:author", async (req, res) => {
-  try {
-    const response = await axios.get(`${BASE_URL}/api/author/${encodeURIComponent(req.params.author)}`);
-    return res.status(200).send(JSON.stringify(response.data, null, 4));
-  } catch (error) {
-    const status = error.response ? error.response.status : 500;
-    return res.status(status).json({ message: "No se pudo obtener los libros por autor" });
-  }
-});
-
-public_users.get("/title/:title", async (req, res) => {
-  try {
-    const response = await axios.get(`${BASE_URL}/api/title/${encodeURIComponent(req.params.title)}`);
-    return res.status(200).send(JSON.stringify(response.data, null, 4));
-  } catch (error) {
-    const status = error.response ? error.response.status : 500;
-    return res.status(status).json({ message: "No se pudo obtener los libros por título" });
-  }
-});
-
-// Reseñas de un libro
-public_users.get("/review/:isbn", (req, res) => {
-  const book = books[req.params.isbn];
-  if (!book) return res.status(404).json({ message: "Libro no encontrado" });
-  return res.status(200).json(book.reviews);
 });
 
 module.exports.general = public_users;
